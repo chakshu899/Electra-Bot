@@ -1,0 +1,32 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Sample product database
+products = [
+    {"name": "Samsung Galaxy M14", "brand": "Samsung", "price": 13999},
+    {"name": "iPhone SE", "brand": "Apple", "price": 39999},
+    {"name": "OnePlus Nord CE 3 Lite", "brand": "OnePlus", "price": 19999},
+]
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    req = request.get_json()
+    parameters = req['queryResult']['parameters']
+    brand = parameters.get('brand')
+
+    matched = [p for p in products if p['brand'].lower() == brand.lower()]
+    
+    if matched:
+        reply = f"Here are some {brand} phones:\n"
+        for p in matched:
+            reply += f"- {p['name']} at ₹{p['price']}\n"
+    else:
+        reply = f"Sorry, I couldn't find any {brand} phones."
+
+    return jsonify({
+        "fulfillmentText": reply
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
